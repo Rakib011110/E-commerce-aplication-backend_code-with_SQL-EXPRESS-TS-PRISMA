@@ -31,42 +31,181 @@ model Admin {
   name         String
   email        String   @unique
   profilePhoto String?
+  isDeleted    Boolean  @default(false) 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [email], references: [email])
 
   @@map("admins")
+  Blacklist Blacklist[]
 }
 
 model Vendor {
   id            String   @id @default(uuid())
-  shopName      String
+  shopName      String?
   email         String   @unique
   contactNumber String?
-  profilePhoto String?
-
+  profilePhoto  String?
   shopLogo      String?
   description   String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [email], references: [email])
+  user          User     @relation(fields: [email], references: [email]) // Ensure userEmail is used
+  isDeleted     Boolean  @default(false)
+  Shop Shop?
 
   @@map("vendors")
 }
+
+
+model Shop {
+  id            String   @id @default(uuid())
+  name          String
+  logo          String?
+  description   String?
+  contactNumber String?
+  address       String?
+  isDeleted     Boolean  @default(false)
+  isBlacklisted Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  vendorId      String @unique
+  vendor        Vendor   @relation(fields: [vendorId], references: [id]) // Linking to the Vendor's id
+  products      Product[]
+  followers     Customer[] @relation("ShopFollowers")
+
+  @@map("shops")
+}
+
+
 
 model Customer {
   id            String   @id @default(uuid())
   name          String
   email         String   @unique
   contactNumber String?
-  profilePhoto String?
-
+  profilePhoto  String?
   address       String?
+  isDeleted    Boolean  @default(false) 
+
+  followedShops Shop[]   @relation("ShopFollowers") 
+  cart          Cart?
+  orders        Order[]
+  reviews       Review[]
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   user          User     @relation(fields: [email], references: [email])
 
   @@map("customers")
+}
+
+
+
+model Product {
+  id              String     @id @default(uuid())
+  name            String
+  description     String?
+  price           Float
+  category        String
+  isDeleted    Boolean  @default(false) 
+
+  inventoryCount  Int
+  discount        Float       @default(0)
+  shop            Shop        @relation(fields: [shopId], references: [id])
+  shopId          String
+  reviews         Review[]
+  images          Image[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  OrderItem       OrderItem[]
+  CartItem        CartItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id              String     @id @default(uuid())
+  orderNumber     String     @unique
+  totalAmount     Float
+  isDeleted    Boolean  @default(false) 
+
+  status          OrderStatus
+  customer        Customer   @relation(fields: [customerId], references: [id])
+  customerId      String
+  // shop            Shop       @relation(fields: [shopId], references: [id])
+  shopId          String
+  orderItems      OrderItem[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  quantity    Int
+  price       Float
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+  order       Order    @relation(fields: [orderId], references: [id])
+  orderId     String
+  isDeleted    Boolean  @default(false) 
+
+  @@map("order_items")
+}
+
+model Cart {
+  id          String      @id @default(uuid())
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  customerId  String @unique
+  cartItems   CartItem[]
+  isDeleted    Boolean  @default(false) 
+
+  @@map("carts")
+}
+
+model CartItem {
+  id          String   @id @default(uuid())
+  quantity    Int
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+  cart        Cart     @relation(fields: [cartId], references: [id])
+  cartId      String
+  isDeleted    Boolean  @default(false) 
+
+  @@map("cart_items")
+}
+
+model Review {
+  id          String     @id @default(uuid())
+  rating      Int
+  comment     String?
+  customer    Customer   @relation(fields: [customerId], references: [id])
+  customerId  String
+  product     Product    @relation(fields: [productId], references: [id])
+  productId   String
+  createdAt   DateTime   @default(now())
+  isDeleted    Boolean  @default(false) 
+
+  @@map("reviews")
+}
+model Blacklist {
+  id           String   @id @default(uuid())
+  vendorId     String
+  reason       String
+  createdAt    DateTime @default(now())
+  admin        Admin    @relation(fields: [vendorId], references: [id])
+}
+
+model Image {
+  id          String     @id @default(uuid())
+  url         String
+  product     Product    @relation(fields: [productId], references: [id])
+  productId   String
+
+  @@map("images")
 }
 
 enum UserRole {
@@ -75,14 +214,14 @@ enum UserRole {
   CUSTOMER
 }
 
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
-}
-
 enum UserStatus {
   ACTIVE
   BLOCKED
   DELETED
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELED
 }

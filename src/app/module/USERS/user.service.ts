@@ -37,6 +37,7 @@ const createAdmin = async (payload: { password: string; admin: any }) => {
 
 // Create Vendor Service
 const createVendor = async (payload: { password: string; vendor: any }) => {
+  console.log(payload);
   try {
     const hashedPassword: string = await bcrypt.hash(payload.password, 12);
 
