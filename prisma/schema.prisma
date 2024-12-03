@@ -12,26 +12,61 @@ datasource db {
 
 model User {
   id        String   @id @default(uuid())
- 
   email     String   @unique
   password  String
   role      UserRole
-   status            UserStatus @default(ACTIVE)
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  admin Admin?
-    @@map("users")
+  status    UserStatus @default(ACTIVE)
+  isDeleted Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  admin     Admin?
+  vendor    Vendor?
+  customer  Customer?
+  
+  @@map("users")
 }
+
 model Admin {
-  id        String   @id @default(uuid())
-   name      String
- email     String   @unique
-  profilePhoto  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [email], references: [email])
-    @@map("admins")
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  profilePhoto String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [email], references: [email])
+
+  @@map("admins")
+}
+
+model Vendor {
+  id            String   @id @default(uuid())
+  shopName      String
+  email         String   @unique
+  contactNumber String?
+  profilePhoto String?
+
+  shopLogo      String?
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [email], references: [email])
+
+  @@map("vendors")
+}
+
+model Customer {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  contactNumber String?
+  profilePhoto String?
+
+  address       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [email], references: [email])
+
+  @@map("customers")
 }
 
 enum UserRole {
@@ -45,6 +80,7 @@ enum Gender {
   FEMALE
   OTHER
 }
+
 enum UserStatus {
   ACTIVE
   BLOCKED
