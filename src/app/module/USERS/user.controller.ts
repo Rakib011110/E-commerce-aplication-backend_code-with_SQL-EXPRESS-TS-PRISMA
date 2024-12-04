@@ -22,6 +22,7 @@ const createAdmin = async (req: Request, res: Response) => {
 
 // Create Vendor Controller
 const createVendor = async (req: Request, res: Response) => {
+  console.log(req.body);
   try {
     const result = await UserServices.createVendor(req.body);
     res.status(200).json({

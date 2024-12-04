@@ -37,17 +37,17 @@ model Admin {
   user         User     @relation(fields: [email], references: [email])
 
   @@map("admins")
-  Blacklist Blacklist[]
+  blacklist Blacklist[]
 }
 
 model Vendor {
   id            String   @id @default(uuid())
-  shopName      String?
+ 
   email         String   @unique
   contactNumber String?
   profilePhoto  String?
-  shopLogo      String?
-  description   String?
+ 
+ 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   user          User     @relation(fields: [email], references: [email]) // Ensure userEmail is used
@@ -112,10 +112,11 @@ model Product {
 
   inventoryCount  Int
   discount        Float       @default(0)
-  shop            Shop        @relation(fields: [shopId], references: [id])
   shopId          String
+
+  shop            Shop        @relation(fields: [shopId], references: [id])
   reviews         Review[]
-  images          Image[]
+  image         String
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
@@ -199,14 +200,6 @@ model Blacklist {
   admin        Admin    @relation(fields: [vendorId], references: [id])
 }
 
-model Image {
-  id          String     @id @default(uuid())
-  url         String
-  product     Product    @relation(fields: [productId], references: [id])
-  productId   String
-
-  @@map("images")
-}
 
 enum UserRole {
   ADMIN
