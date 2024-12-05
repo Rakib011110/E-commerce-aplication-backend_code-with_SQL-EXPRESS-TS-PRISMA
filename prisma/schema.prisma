@@ -37,7 +37,7 @@ model Admin {
   user         User     @relation(fields: [email], references: [email])
 
   @@map("admins")
-  blacklist Blacklist[]
+
 }
 
 model Vendor {
@@ -160,9 +160,9 @@ model OrderItem {
 model Cart {
   id          String      @id @default(uuid())
   customer    Customer    @relation(fields: [customerId], references: [id])
-  customerId  String @unique
+  customerId  String      @unique
   cartItems   CartItem[]
-  isDeleted    Boolean  @default(false) 
+  isDeleted   Boolean     @default(false)
 
   @@map("carts")
 }
@@ -174,7 +174,7 @@ model CartItem {
   productId   String
   cart        Cart     @relation(fields: [cartId], references: [id])
   cartId      String
-  isDeleted    Boolean  @default(false) 
+  isDeleted   Boolean  @default(false)
 
   @@map("cart_items")
 }
@@ -192,14 +192,6 @@ model Review {
 
   @@map("reviews")
 }
-model Blacklist {
-  id           String   @id @default(uuid())
-  vendorId     String
-  reason       String
-  createdAt    DateTime @default(now())
-  admin        Admin    @relation(fields: [vendorId], references: [id])
-}
-
 
 enum UserRole {
   ADMIN
