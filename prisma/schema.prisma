@@ -9,7 +9,6 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -18,43 +17,59 @@ model User {
   status    UserStatus @default(ACTIVE)
   isDeleted Boolean    @default(false)
   createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  updatedAt DateTime   @default(now())
   admin     Admin?
   vendor    Vendor?
   customer  Customer?
-  
+
   @@map("users")
 }
 
 model Admin {
   id           String   @id @default(uuid())
   name         String
-  email        String   @unique
   profilePhoto String?
-  isDeleted    Boolean  @default(false) 
+  isDeleted    Boolean  @default(false)
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [email], references: [email])
+  updatedAt    DateTime @default(now())
 
   @@map("admins")
-
 }
 
 model Vendor {
   id            String   @id @default(uuid())
- 
-  email         String   @unique
   contactNumber String?
   profilePhoto  String?
- 
- 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [email], references: [email]) // Ensure userEmail is used
   isDeleted     Boolean  @default(false)
-  Shop Shop?
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  shop          Shop?
 
   @@map("vendors")
+}
+
+model Customer {
+  id            String   @id @default(uuid())
+  name          String
+  contactNumber String?
+  profilePhoto  String?
+  address       String?
+  isDeleted     Boolean  @default(false)
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  followedShops ShopFollowers[]
+  cart          Cart?
+  orders        Order[]
+  reviews       Review[]
+
+  @@map("customers")
 }
 
 
@@ -67,40 +82,27 @@ model Shop {
   address       String?
   isDeleted     Boolean  @default(false)
   isBlacklisted Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  vendorId      String @unique
-  vendor        Vendor   @relation(fields: [vendorId], references: [id]) // Linking to the Vendor's id
+  followers     ShopFollowers[]
   products      Product[]
-  followers     Customer[] @relation("ShopFollowers")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  vendorId      String   @unique
+  vendor        Vendor   @relation(fields: [vendorId], references: [id])
 
   @@map("shops")
 }
 
+model ShopFollowers {
+  id         String   @id @default(uuid())
+  customerId String
+  shopId     String
+  followedAt DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id])
+  shop       Shop     @relation(fields: [shopId], references: [id])
 
-
-model Customer {
-  id            String   @id @default(uuid())
-  name          String
-  email         String   @unique
-  contactNumber String?
-  profilePhoto  String?
-  address       String?
-  isDeleted    Boolean  @default(false) 
-
-  followedShops Shop[]   @relation("ShopFollowers") 
-  cart          Cart?
-  orders        Order[]
-  reviews       Review[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [email], references: [email])
-
-  @@map("customers")
+  @@unique([customerId, shopId]) // Ensure no duplicate follows
+  @@map("shop_followers")
 }
-
-
 
 model Product {
   id              String     @id @default(uuid())
@@ -108,20 +110,17 @@ model Product {
   description     String?
   price           Float
   category        String
-  isDeleted    Boolean  @default(false) 
-
+  isDeleted       Boolean  @default(false)
   inventoryCount  Int
   discount        Float       @default(0)
   shopId          String
-
   shop            Shop        @relation(fields: [shopId], references: [id])
   reviews         Review[]
-  image         String
+  image           String
   createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  OrderItem       OrderItem[]
-  CartItem        CartItem[]
+  updatedAt       DateTime    @default(now())
+  orderItems      OrderItem[]
+  cartItems       CartItem[]
 
   @@map("products")
 }
@@ -130,16 +129,14 @@ model Order {
   id              String     @id @default(uuid())
   orderNumber     String     @unique
   totalAmount     Float
-  isDeleted    Boolean  @default(false) 
-
+  isDeleted       Boolean    @default(false)
   status          OrderStatus
   customer        Customer   @relation(fields: [customerId], references: [id])
   customerId      String
-  // shop            Shop       @relation(fields: [shopId], references: [id])
   shopId          String
   orderItems      OrderItem[]
   createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  updatedAt       DateTime   @default(now())
 
   @@map("orders")
 }
@@ -152,7 +149,7 @@ model OrderItem {
   productId   String
   order       Order    @relation(fields: [orderId], references: [id])
   orderId     String
-  isDeleted    Boolean  @default(false) 
+  isDeleted   Boolean  @default(false)
 
   @@map("order_items")
 }
@@ -188,7 +185,7 @@ model Review {
   product     Product    @relation(fields: [productId], references: [id])
   productId   String
   createdAt   DateTime   @default(now())
-  isDeleted    Boolean  @default(false) 
+  isDeleted   Boolean    @default(false)
 
   @@map("reviews")
 }

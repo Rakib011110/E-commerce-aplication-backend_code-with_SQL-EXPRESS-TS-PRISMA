@@ -4,13 +4,19 @@ import { prisma } from "../../../Shared/prisma";
 import { generateToken, jwtHelpers } from "../../../helpers/jwtHelpers";
 import config from "../../../config";
 
-const loginUser = async (payload: { email: string; password: string }) => {
+const loginUser = async (payload: {
+  id: string;
+  email: string;
+  password: string;
+}) => {
   const userData = await prisma.user.findUnique({
     where: {
+      id: payload.id,
       email: payload.email,
       status: UserStatus.ACTIVE,
     },
   });
+
   if (!userData) {
     throw new Error("User not found");
   }
@@ -25,7 +31,9 @@ const loginUser = async (payload: { email: string; password: string }) => {
 
   const accessToken = generateToken(
     {
+      id: userData.id,
       email: userData.email,
+
       role: userData.role,
     },
     config.jwt.secret,

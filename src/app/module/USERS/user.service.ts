@@ -2,8 +2,11 @@ import { UserRole } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { prisma } from "../../../Shared/prisma";
 
-// Create Admin Service
-const createAdmin = async (payload: { password: string; admin: any }) => {
+const createAdmin = async (payload: {
+  password: string;
+  admin: any;
+  userId: any;
+}) => {
   try {
     const hashedPassword: string = await bcrypt.hash(payload.password, 12);
 
@@ -13,17 +16,15 @@ const createAdmin = async (payload: { password: string; admin: any }) => {
       role: UserRole.ADMIN,
     };
 
-    const adminData = {
-      ...payload.admin,
-    };
-
     const result = await prisma.$transaction(async (transactionClient) => {
-      await transactionClient.user.create({
-        data: userData,
-      });
+      const user = await transactionClient.user.create({ data: userData });
 
       const createdAdminData = await transactionClient.admin.create({
-        data: adminData,
+        data: {
+          name: payload.admin.name,
+          profilePhoto: payload.admin.profilePhoto,
+          userId: user.id, // Link to User
+        },
       });
 
       return createdAdminData;
@@ -35,9 +36,7 @@ const createAdmin = async (payload: { password: string; admin: any }) => {
   }
 };
 
-// Create Vendor Service
 const createVendor = async (payload: { password: string; vendor: any }) => {
-  console.log(payload);
   try {
     const hashedPassword: string = await bcrypt.hash(payload.password, 12);
 
@@ -47,17 +46,15 @@ const createVendor = async (payload: { password: string; vendor: any }) => {
       role: UserRole.VENDOR,
     };
 
-    const vendorData = {
-      ...payload.vendor,
-    };
-
     const result = await prisma.$transaction(async (transactionClient) => {
-      await transactionClient.user.create({
-        data: userData,
-      });
+      const user = await transactionClient.user.create({ data: userData });
 
       const createdVendorData = await transactionClient.vendor.create({
-        data: vendorData,
+        data: {
+          contactNumber: payload.vendor.contactNumber,
+          profilePhoto: payload.vendor.profilePhoto,
+          userId: user.id, // Link to User
+        },
       });
 
       return createdVendorData;
@@ -69,7 +66,6 @@ const createVendor = async (payload: { password: string; vendor: any }) => {
   }
 };
 
-// Create Customer Service
 const createCustomer = async (payload: { password: string; customer: any }) => {
   try {
     const hashedPassword: string = await bcrypt.hash(payload.password, 12);
@@ -80,17 +76,17 @@ const createCustomer = async (payload: { password: string; customer: any }) => {
       role: UserRole.CUSTOMER,
     };
 
-    const customerData = {
-      ...payload.customer,
-    };
-
     const result = await prisma.$transaction(async (transactionClient) => {
-      await transactionClient.user.create({
-        data: userData,
-      });
+      const user = await transactionClient.user.create({ data: userData });
 
       const createdCustomerData = await transactionClient.customer.create({
-        data: customerData,
+        data: {
+          name: payload.customer.name,
+          contactNumber: payload.customer.contactNumber,
+          profilePhoto: payload.customer.profilePhoto,
+          address: payload.customer.address,
+          userId: user.id, // Link to User
+        },
       });
 
       return createdCustomerData;

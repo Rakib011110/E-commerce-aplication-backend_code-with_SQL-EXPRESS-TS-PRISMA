@@ -3,27 +3,41 @@ import sendResponse from "../../../../Shared/sendResponse";
 import { ShopService } from "./follow.service";
 
 const followShop = catchAsynce(async (req, res) => {
-  const { id: shopId } = req.params;
-  const userId = req.user.id; // Assuming the user's ID is available in `req.user`
-  const result = await ShopService.followShop(userId, shopId);
+  const { id: shopId } = req.params; // Shop ID
+  const customerId = req.user?.id; // Extracted from authenticated user context
+
+  if (!shopId || !customerId) {
+    throw new Error("Shop ID and Customer ID are required.");
+  }
+
+  console.log("Follow Shop - Shop ID:", shopId, "Customer ID:", customerId);
+
+  const result = await ShopService.followShop(shopId, customerId);
 
   sendResponse(res, {
-    statusCode: 201,
+    statusCode: 200,
     success: true,
-    message: "Shop followed successfully",
+    message: "Successfully followed the shop",
     data: result,
   });
 });
 
 const unfollowShop = catchAsynce(async (req, res) => {
-  const { id: shopId } = req.params;
-  const userId = req.user.id; // Assuming the user's ID is available in `req.user`
-  const result = await ShopService.unfollowShop(userId, shopId);
+  const { id: shopId } = req.params; // Shop ID
+  const customerId = req.user?.id; // Extracted from authenticated user context
+
+  if (!shopId || !customerId) {
+    throw new Error("Shop ID and Customer ID are required.");
+  }
+
+  console.log("Unfollow Shop - Shop ID:", shopId, "Customer ID:", customerId);
+
+  const result = await ShopService.unfollowShop(shopId, customerId);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: result.message,
+    message: "Successfully unfollowed the shop",
     data: result,
   });
 });

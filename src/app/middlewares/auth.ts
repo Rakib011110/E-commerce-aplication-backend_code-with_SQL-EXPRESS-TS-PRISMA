@@ -18,16 +18,27 @@ export const auth = (...roles: string[]) => {
         throw new ApiError(StatusCodes.UNAUTHORIZED, "You are not authorized!");
       }
 
+      // Verify and decode the token
       const verifytoken = jwtHelpers.verifyToken(
         token,
         config.jwt.secret as Secret
       );
 
-      req.user = verifytoken; // for password
-
-      if (roles.length && !roles.includes(verifytoken.role)) {
-        throw new ApiError(StatusCodes.FORBIDDEN, "FORBIDDEN");
+      if (!verifytoken) {
+        throw new ApiError(
+          StatusCodes.UNAUTHORIZED,
+          "Invalid or expired token!"
+        );
       }
+
+      req.user = verifytoken; // Attach decoded token to req.user
+      console.log("Decoded User:", req.user);
+
+      // Role-based authorization
+      if (roles.length && !roles.includes(verifytoken.role)) {
+        throw new ApiError(StatusCodes.FORBIDDEN, "Access denied!");
+      }
+
       next();
     } catch (error) {
       next(error);
