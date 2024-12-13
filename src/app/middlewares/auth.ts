@@ -32,7 +32,7 @@ export const auth = (...roles: string[]) => {
       }
 
       req.user = verifytoken; // Attach decoded token to req.user
-      console.log("Decoded User:", req.user);
+      // console.log("Decoded User:", req.user);
 
       // Role-based authorization
       if (roles.length && !roles.includes(verifytoken.role)) {

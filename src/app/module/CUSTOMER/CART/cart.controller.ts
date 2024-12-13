@@ -2,10 +2,11 @@ import { Request, Response } from "express";
 import { CartService } from "./cart.service";
 import sendResponse from "../../../../Shared/sendResponse";
 import { catchAsynce } from "../../../../Shared/catchAsynce";
+import { JwtPayload } from "jsonwebtoken";
 
-const addItemToCart = catchAsynce(async (req: Request, res: Response) => {
-  const { productId, quantity, customerId } = req.body;
-
+const addItemToCart = catchAsynce(async (req, res) => {
+  const { productId, quantity } = req.body;
+  const customerId = req.user?.userId;
   const result = await CartService.addItemToCart({
     productId,
     quantity,
@@ -21,9 +22,9 @@ const addItemToCart = catchAsynce(async (req: Request, res: Response) => {
 });
 
 const getCartItems = catchAsynce(async (req: Request, res: Response) => {
-  const { customerId } = req.query;
+  const customerId = req.user?.userId; // Extract user ID from token (middleware)
 
-  const result = await CartService.getCartItems(customerId as string);
+  const result = await CartService.getCartItems(customerId);
 
   sendResponse(res, {
     statusCode: 200,
@@ -50,13 +51,13 @@ const updateCartItem = catchAsynce(async (req: Request, res: Response) => {
 const removeCartItem = catchAsynce(async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  const result = await CartService.removeCartItem(id);
+  await CartService.removeCartItem(id);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: "Cart item removed successfully",
-    data: result,
+    data: null,
   });
 });
 

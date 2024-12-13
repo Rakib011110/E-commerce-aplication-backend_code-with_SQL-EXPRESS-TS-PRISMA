@@ -21,6 +21,8 @@ const getProductById = async (id: string) => {
     where: {
       id,
     },
+
+    include: { reviews: true },
   });
   return product;
 };

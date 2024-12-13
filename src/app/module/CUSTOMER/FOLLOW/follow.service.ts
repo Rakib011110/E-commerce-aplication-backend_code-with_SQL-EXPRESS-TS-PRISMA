@@ -1,31 +1,50 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { prisma } from "../../../../Shared/prisma";
-import { UserRole } from "@prisma/client";
 
-const followShop = async (shopId: string, customerId: string) => {
+const followShop = async (shopId: string, userId: string) => {
   try {
-    // Update customer to follow the shop
-    return await prisma.customer.update({
-      where: { id: customerId },
-      data: {
-        followedShops: {
-          connect: { id: shopId },
+    // Validate if the shop exists
+    const shopExists = await prisma.shop.findUnique({
+      where: { id: shopId },
+    });
+
+    if (!shopExists) {
+      throw new Error(`Shop with ID: ${shopId} does not exist.`);
+    }
+
+    // Validate if the user is a customer
+    const customer = await prisma.customer.findUnique({
+      where: { userId },
+    });
+    if (!customer) {
+      throw new Error(`User with ID: ${userId} is not a customer.`);
+    }
+
+    // Prevent duplicate follow
+    const alreadyFollowing = await prisma.shopFollowers.findUnique({
+      where: {
+        customerId_shopId: {
+          customerId: customer.id,
+          shopId: shopId,
         },
       },
     });
-  } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        throw new Error(
-          `Operation failed: ${error.meta?.cause || "Record not found."}`
-        );
-      }
+    if (alreadyFollowing) {
+      throw new Error(`You are already following this shop.`);
     }
-    throw error; // Re-throw other errors
+
+    // Create a new shop follow entry
+    return await prisma.shopFollowers.create({
+      data: {
+        customerId: customer.id,
+        shopId: shopId,
+      },
+    });
+  } catch (error) {
+    throw error;
   }
 };
 
-const unfollowShop = async (shopId: string, customerId: string) => {
+const unfollowShop = async (shopId: string, userId: string) => {
   try {
     // Validate if the shop exists
     const shopExists = await prisma.shop.findUnique({
@@ -35,23 +54,20 @@ const unfollowShop = async (shopId: string, customerId: string) => {
       throw new Error(`Shop with ID: ${shopId} does not exist.`);
     }
 
-    // Validate if the customer exists
-    const customerExists = await prisma.user.findUnique({
-      where: {
-        id: customerId,
-        role: UserRole.CUSTOMER,
-      },
+    // Validate if the user is a customer
+    const customer = await prisma.customer.findUnique({
+      where: { userId },
     });
-    if (!customerExists) {
-      throw new Error(`Customer with ID: ${customerId} does not exist.`);
+    if (!customer) {
+      throw new Error(`User with ID: ${userId} is not a customer.`);
     }
 
-    // Update customer to unfollow the shop
-    return await prisma.customer.update({
-      where: { id: customerId },
-      data: {
-        followedShops: {
-          disconnect: { id: shopId },
+    // Remove the shop follow entry
+    return await prisma.shopFollowers.delete({
+      where: {
+        customerId_shopId: {
+          customerId: customer.id,
+          shopId: shopId,
         },
       },
     });

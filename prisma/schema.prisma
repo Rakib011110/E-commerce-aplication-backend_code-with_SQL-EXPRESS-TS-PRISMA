@@ -12,7 +12,9 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String
+  password  String 
+  needPassowordChange Boolean @default(true)
+
   role      UserRole
   status    UserStatus @default(ACTIVE)
   isDeleted Boolean    @default(false)
@@ -129,7 +131,7 @@ model Order {
   id              String     @id @default(uuid())
   orderNumber     String     @unique
   totalAmount     Float
-  isDeleted       Boolean    @default(false)
+  paymentStatus   PaymentStatus @default(PENDING)
   status          OrderStatus
   customer        Customer   @relation(fields: [customerId], references: [id])
   customerId      String
@@ -139,6 +141,12 @@ model Order {
   updatedAt       DateTime   @default(now())
 
   @@map("orders")
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
 }
 
 model OrderItem {
@@ -178,8 +186,9 @@ model CartItem {
 
 model Review {
   id          String     @id @default(uuid())
-  rating      Int
+  rating     Int?
   comment     String?
+  email       String?   
   customer    Customer   @relation(fields: [customerId], references: [id])
   customerId  String
   product     Product    @relation(fields: [productId], references: [id])
@@ -189,6 +198,7 @@ model Review {
 
   @@map("reviews")
 }
+
 
 enum UserRole {
   ADMIN
@@ -207,3 +217,5 @@ enum OrderStatus {
   COMPLETED
   CANCELED
 }
+
+

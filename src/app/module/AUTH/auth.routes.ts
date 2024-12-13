@@ -11,5 +11,15 @@ router.post(
   auth(UserRole.CUSTOMER, UserRole.ADMIN, UserRole.VENDOR),
   AuthController.loginUser
 );
-
+router.post(
+  "/change-password",
+  auth(UserRole.ADMIN, UserRole.CUSTOMER, UserRole.VENDOR),
+  AuthController.changePassword
+);
+router.post(
+  "/forgot-password",
+  auth(UserRole.ADMIN, UserRole.ADMIN, UserRole.CUSTOMER, UserRole.VENDOR),
+  AuthController.forgotPassword
+);
+router.post("/reset-password", AuthController.resetPassword);
 export const AuthRoutes = router;

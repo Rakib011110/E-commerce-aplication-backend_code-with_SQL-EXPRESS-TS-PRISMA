@@ -9,7 +9,7 @@ const addItemToCart = async ({
   quantity: number;
   customerId: string;
 }) => {
-  // Check if customer exists
+  // Check if the customer exists
   const customerExists = await prisma.customer.findUnique({
     where: { id: customerId },
   });
@@ -43,6 +43,7 @@ const addItemToCart = async ({
 };
 
 const getCartItems = async (customerId: string) => {
+  // Fetch the cart for the customer with items
   const cart = await prisma.cart.findFirst({
     where: { customerId },
     include: {
@@ -60,6 +61,7 @@ const getCartItems = async (customerId: string) => {
 };
 
 const updateCartItem = async (id: string, quantity: number) => {
+  // Update the quantity of the item in the cart
   const updatedItem = await prisma.cartItem.update({
     where: { id },
     data: { quantity },
@@ -69,6 +71,7 @@ const updateCartItem = async (id: string, quantity: number) => {
 };
 
 const removeCartItem = async (id: string) => {
+  // Delete the item from the cart
   await prisma.cartItem.delete({
     where: { id },
   });
