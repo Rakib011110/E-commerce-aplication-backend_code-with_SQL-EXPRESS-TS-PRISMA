@@ -56,7 +56,7 @@ model Vendor {
 
 model Customer {
   id            String   @id @default(uuid())
-  name          String
+  name          String?
   contactNumber String?
   profilePhoto  String?
   address       String?
@@ -88,8 +88,8 @@ model Shop {
   products      Product[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now())
-  vendorId      String   @unique
-  vendor        Vendor   @relation(fields: [vendorId], references: [id])
+  userId      String   @unique
+  vendor        Vendor   @relation(fields: [userId], references: [id])
 
   @@map("shops")
 }
@@ -108,7 +108,7 @@ model ShopFollowers {
 
 model Product {
   id              String     @id @default(uuid())
-  name            String
+  name            String?
   description     String?
   price           Float
   category        String

@@ -5,13 +5,29 @@ import { auth } from "../../middlewares/auth";
 
 const router = express.Router();
 
-router.post("/", auth(UserRole.CUSTOMER), OrderController.createOrder); // Place order
+// Create a new order
+router.post("/", auth(UserRole.CUSTOMER), OrderController.createOrder);
+router.get(
+  "/",
+  auth(UserRole.ADMIN, UserRole.VENDOR, UserRole.CUSTOMER),
+  OrderController.getAllOrders
+);
+
+// Create a Stripe payment intent
 router.post(
-  "/:id/payment-intent",
+  "/:id",
   auth(UserRole.CUSTOMER),
   OrderController.createPaymentIntent
-); // Create payment intent
-router.put("/:id", auth(UserRole.CUSTOMER), OrderController.updateOrderStatus); // Update order status
-router.get("/:id", auth(UserRole.CUSTOMER), OrderController.getOrderDetails); // Get order details
+);
+
+router.put("/:id", auth(UserRole.CUSTOMER), OrderController.updateOrderStatus);
+
+router.get("/:id", auth(UserRole.CUSTOMER), OrderController.getOrderDetails);
+
+router.get(
+  "/history",
+  auth(UserRole.CUSTOMER, UserRole.VENDOR),
+  OrderController.getOrderHistory
+);
 
 export const OrderRoutes = router;

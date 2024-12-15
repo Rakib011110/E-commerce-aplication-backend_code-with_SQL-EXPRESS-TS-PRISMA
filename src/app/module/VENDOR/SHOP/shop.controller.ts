@@ -4,17 +4,30 @@ import sendResponse from "../../../../Shared/sendResponse";
 import { catchAsynce } from "../../../../Shared/catchAsynce";
 
 // Create a shop
-const createShop = catchAsynce(async (req: Request, res: Response) => {
-  const shopData = req.body;
-  const result = await ShopService.createShop(shopData);
+const createShop = catchAsynce(
+  async (req: Request & { user?: any }, res: Response) => {
+    const { name, logo, description, contactNumber } = req.body;
 
-  sendResponse(res, {
-    statusCode: 201,
-    success: true,
-    message: "Shop created successfully",
-    data: result,
-  });
-});
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new Error(
+        "Unauthorized access: Vendor ID is required to create a shop."
+      );
+    }
+
+    const shopData = { name, logo, description, contactNumber, userId };
+    console.log(shopData);
+    const result = await ShopService.createShop(shopData);
+
+    sendResponse(res, {
+      statusCode: 201,
+      success: true,
+      message: "Shop created successfully",
+      data: result,
+    });
+  }
+);
+
 const getAllShop = catchAsynce(async (req: Request, res: Response) => {
   const shopData = req.body;
   const result = await ShopService.getAllShop();

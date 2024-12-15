@@ -1,9 +1,11 @@
 import express from "express";
 import { ShopController } from "./shop.controller";
+import { UserRole } from "@prisma/client";
+import { auth } from "../../../middlewares/auth";
 
 const router = express.Router();
 
-router.post("/", ShopController.createShop);
+router.post("/", auth(UserRole.VENDOR), ShopController.createShop);
 router.get("/", ShopController.getAllShop);
 router.get("/:id", ShopController.getShopById);
 router.put("/:id", ShopController.updateShop);

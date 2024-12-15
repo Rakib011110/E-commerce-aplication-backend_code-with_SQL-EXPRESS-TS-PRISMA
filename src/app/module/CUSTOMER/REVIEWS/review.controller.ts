@@ -3,27 +3,28 @@ import { ReviewService } from "./review.service";
 import sendResponse from "../../../../Shared/sendResponse";
 import { catchAsynce } from "../../../../Shared/catchAsynce";
 
-export const createReview = catchAsynce(async (req: Request, res: Response) => {
-  const { productId, rating, comment } = req.body;
-  const customerId = req.user?.userId;
-  //   console.log(req.user);
-  const email = req.user?.email;
-  //   console.log(req.user);
-  const review = await ReviewService.createReview({
-    productId,
-    customerId,
-    rating,
-    comment,
-    email,
-  });
+export const createReview = catchAsynce(
+  async (req: Request & { user?: any }, res: Response) => {
+    const { productId, rating, comment } = req.body;
+    const customerId = req.user?.userId;
+    const email = req.user?.email;
+    //   console.log(req.user);
+    const review = await ReviewService.createReview({
+      productId,
+      customerId,
+      rating,
+      comment,
+      email,
+    });
 
-  sendResponse(res, {
-    statusCode: 201,
-    success: true,
-    message: "Review created successfully.",
-    data: review,
-  });
-});
+    sendResponse(res, {
+      statusCode: 201,
+      success: true,
+      message: "Review created successfully.",
+      data: review,
+    });
+  }
+);
 
 export const getReview = catchAsynce(async (req: Request, res: Response) => {
   const { id } = req.params;

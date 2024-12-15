@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.post("/items", auth(UserRole.CUSTOMER), CartController.addItemToCart);
 router.get("/items", auth(UserRole.CUSTOMER), CartController.getCartItems);
+router.get("/", auth(UserRole.CUSTOMER), CartController.getCart);
 router.put(
   "/items/:id",
   auth(UserRole.CUSTOMER),

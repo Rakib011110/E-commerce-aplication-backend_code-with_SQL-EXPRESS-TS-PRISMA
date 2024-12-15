@@ -59,6 +59,18 @@ const getCartItems = async (customerId: string) => {
 
   return cart.cartItems;
 };
+const getCart = async (customerId: string) => {
+  // Fetch the cart for the customer with items
+  const cart = await prisma.cart.findMany({
+    where: { customerId },
+  });
+
+  if (!cart) {
+    throw new Error("Cart not found");
+  }
+
+  return cart;
+};
 
 const updateCartItem = async (id: string, quantity: number) => {
   // Update the quantity of the item in the cart
@@ -82,4 +94,5 @@ export const CartService = {
   getCartItems,
   updateCartItem,
   removeCartItem,
+  getCart,
 };
