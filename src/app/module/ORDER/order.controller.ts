@@ -84,16 +84,23 @@ const getOrderDetails = catchAsynce(async (req, res) => {
 
 const getOrderHistory = catchAsynce(
   async (req: Request & { user?: any }, res) => {
-    const userId = req.user?.userId;
+    const id = req.user?.userId;
     const role = req.user?.role;
     const { page = 1, limit = 10 } = req.query;
 
+    console.log("Fetching Order History");
+    console.log("User ID:", id);
+    console.log("Role:", role);
+    console.log("Page:", page, "Limit:", limit);
+
     const orders = await OrderService.getOrderHistory({
-      userId,
+      id,
       role,
       page: parseInt(page as string, 10),
       limit: parseInt(limit as string, 10),
     });
+
+    console.log("Fetched Orders:", orders);
 
     sendResponse(res, {
       statusCode: 200,

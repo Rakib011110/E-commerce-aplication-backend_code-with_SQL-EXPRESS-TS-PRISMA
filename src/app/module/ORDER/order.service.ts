@@ -31,7 +31,7 @@ const createOrder = async (payload: {
       customerId: payload.customerId,
       shopId,
       status: "PENDING",
-      paymentStatus: "PENDING",
+      paymentStatus: "PAID",
       orderItems: {
         create: cart.cartItems.map((item) => ({
           productId: item.productId,
@@ -51,19 +51,17 @@ const createOrder = async (payload: {
 };
 
 const createPaymentIntent = async (orderId: string) => {
-  // Fetch order details
   const order = await prisma.order.findUnique({
     where: { id: orderId },
   });
 
   if (!order) throw new Error("Order not found.");
 
-  // Create a Stripe PaymentIntent
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: Math.round(order.totalAmount * 100), // Convert to cents
-    currency: "usd", // Test mode currency
-    payment_method_types: ["card"], // Only allow card payments
-    metadata: { orderId }, // Store orderId in metadata for reference
+    amount: Math.round(order.totalAmount * 100),
+    currency: "usd",
+    payment_method_types: ["card"],
+    metadata: { orderId },
   });
 
   return { clientSecret: paymentIntent.client_secret };
@@ -143,42 +141,38 @@ const getOrderDetails = async (orderId: string) => {
 };
 
 const getOrderHistory = async ({
-  userId,
+  id,
   role,
   page,
   limit,
 }: {
-  userId: string;
-  role: "CUSTOMER" | "VENDOR";
-  page: number;
-  limit: number;
+  id: any;
+  role: any;
+  page: any;
+  limit: any;
 }) => {
-  const offset = (page - 1) * limit;
+  const customer = await prisma.customer.findUnique({
+    where: { id },
+    select: { id: true },
+  });
 
-  if (role === "CUSTOMER") {
-    return prisma.order.findMany({
-      where: { customer: { userId } },
-      include: { orderItems: { include: { product: true } } },
-      skip: offset,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-    });
+  if (!customer) {
+    throw new Error("Customer not found for this user.");
   }
 
-  if (role === "VENDOR") {
-    const shop = await prisma.shop.findUnique({ where: { userId } });
-    if (!shop) throw new Error("Shop not found for this vendor.");
+  const orders = await prisma.order.findMany({
+    where: { customerId: customer.id },
+    include: {
+      orderItems: {
+        include: { product: true },
+      },
+    },
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: { createdAt: "desc" },
+  });
 
-    return prisma.order.findMany({
-      where: { shopId: shop.id },
-      include: { orderItems: { include: { product: true } } },
-      skip: offset,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-    });
-  }
-
-  throw new Error("Invalid role.");
+  return orders;
 };
 
 export const OrderService = {

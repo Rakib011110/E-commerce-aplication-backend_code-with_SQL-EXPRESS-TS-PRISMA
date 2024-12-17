@@ -40,9 +40,38 @@ const getAllShop = catchAsynce(async (req: Request, res: Response) => {
   });
 });
 
+const getVendorShop = catchAsynce(
+  async (req: Request & { user?: any }, res: Response) => {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new Error("Unauthorized: No user ID found in token.");
+    }
+
+    const shop = await ShopService.getVendorShop(userId);
+
+    if (!shop) {
+      return sendResponse(res, {
+        statusCode: 404,
+        success: false,
+        message: "Shop not found for the vendor",
+        data: null,
+      });
+    }
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Vendor shop retrieved successfully",
+      data: shop,
+    });
+  }
+);
+
 // Get shop by ID
 const getShopById = catchAsynce(async (req: Request, res: Response) => {
   const { id } = req.params;
+
   const result = await ShopService.getShopById(id);
 
   if (!result) {
@@ -50,7 +79,7 @@ const getShopById = catchAsynce(async (req: Request, res: Response) => {
       statusCode: 404,
       success: false,
       message: "Shop not found",
-      data: result,
+      data: null,
     });
   }
 
@@ -61,10 +90,9 @@ const getShopById = catchAsynce(async (req: Request, res: Response) => {
     data: result,
   });
 });
-
 // Update shop by ID
 const updateShop = catchAsynce(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { id } = req.body;
   const updatedData = req.body;
 
   const shop = await ShopService.getShopById(id);
@@ -115,4 +143,5 @@ export const ShopController = {
   updateShop,
   softDeleteShop,
   getAllShop,
+  getVendorShop,
 };

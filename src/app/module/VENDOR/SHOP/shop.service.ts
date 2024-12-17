@@ -23,6 +23,7 @@ const getAllShop = async () => {
   const shop = await prisma.shop.findMany({
     where: {
       isBlacklisted: false,
+      isDeleted: false,
     },
     include: {
       products: true,
@@ -39,18 +40,29 @@ const updateShop = async (id: string, data: any) => {
   });
   return shop;
 };
+const getVendorShop = async (userId: string) => {
+  const shop = await prisma.shop.findUnique({
+    where: { userId, isDeleted: false },
+    include: {
+      products: true,
+      followers: true,
+    },
+  });
+
+  return shop;
+};
 
 const getShopById = async (id: string) => {
   const shop = await prisma.shop.findUnique({
     where: {
       id,
-
       isDeleted: false,
     },
     include: {
       products: true,
     },
   });
+
   return shop;
 };
 
@@ -68,4 +80,5 @@ export const ShopService = {
   getShopById,
   updateShop,
   softDeleteShop,
+  getVendorShop,
 };

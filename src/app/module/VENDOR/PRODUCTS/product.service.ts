@@ -36,9 +36,8 @@ const updateProduct = async (id: string, payload: any) => {
 };
 
 const deleteProduct = async (id: string) => {
-  const product = await prisma.product.update({
+  const product = await prisma.product.delete({
     where: { id },
-    data: { isDeleted: true },
   });
   return product;
 };

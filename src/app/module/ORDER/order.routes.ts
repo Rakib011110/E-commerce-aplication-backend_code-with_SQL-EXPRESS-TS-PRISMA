@@ -20,9 +20,13 @@ router.post(
   OrderController.createPaymentIntent
 );
 
-router.put("/:id", auth(UserRole.CUSTOMER), OrderController.updateOrderStatus);
+router.put(
+  "/:id",
+  auth(UserRole.CUSTOMER, UserRole.VENDOR),
+  OrderController.updateOrderStatus
+);
 
-router.get("/:id", auth(UserRole.CUSTOMER), OrderController.getOrderDetails);
+// router.get("/:id", auth(UserRole.CUSTOMER), OrderController.getOrderDetails);
 
 router.get(
   "/history",

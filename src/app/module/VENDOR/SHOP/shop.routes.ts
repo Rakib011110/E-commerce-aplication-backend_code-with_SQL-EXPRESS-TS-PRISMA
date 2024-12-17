@@ -6,9 +6,11 @@ import { auth } from "../../../middlewares/auth";
 const router = express.Router();
 
 router.post("/", auth(UserRole.VENDOR), ShopController.createShop);
+router.get("/vendor", auth(UserRole.VENDOR), ShopController.getVendorShop);
+
 router.get("/", ShopController.getAllShop);
 router.get("/:id", ShopController.getShopById);
-router.put("/:id", ShopController.updateShop);
+router.put("/", auth(UserRole.VENDOR), ShopController.updateShop);
 router.delete("/:id", ShopController.softDeleteShop);
 
 export const ShopRouter = router;

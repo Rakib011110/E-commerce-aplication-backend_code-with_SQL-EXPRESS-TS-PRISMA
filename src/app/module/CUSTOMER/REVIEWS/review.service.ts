@@ -4,7 +4,7 @@ import ApiError from "../../../Error/ApiError";
 
 const createReview = async (payload: {
   productId: string;
-  customerId: string;
+  userId: string;
   rating: number;
   email: string;
 
@@ -13,7 +13,7 @@ const createReview = async (payload: {
   const review = await prisma.review.create({
     data: {
       productId: payload.productId,
-      customerId: payload.customerId,
+      userId: payload.userId,
       rating: payload.rating,
       //   comment: payload.comment,
       comment: payload.comment,
@@ -21,6 +21,20 @@ const createReview = async (payload: {
     },
   });
   return review;
+};
+
+const getAllCustomerReviews = async () => {
+  const reviews = await prisma.review.findMany({
+    where: {
+      isDeleted: false,
+    },
+    include: {
+      customer: true,
+      product: true,
+    },
+  });
+
+  return reviews;
 };
 
 const getReview = async (id: string) => {
@@ -53,9 +67,43 @@ const deleteReview = async (id: string) => {
   return { message: "Review deleted successfully" };
 };
 
+const addVendorReply = async (id: string, vendorReply: string) => {
+  const review = await prisma.review.update({
+    where: { id },
+    data: { vendorReply },
+  });
+
+  if (!review) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Review not found.");
+  }
+
+  return review;
+};
+
+const getVendorReviews = async (userId: string) => {
+  const reviews = await prisma.review.findMany({
+    where: {
+      product: {
+        shop: {
+          userId: userId, // Match vendor ID
+        },
+      },
+    },
+    include: {
+      customer: true,
+      product: true,
+    },
+  });
+
+  return reviews;
+};
+
 export const ReviewService = {
   createReview,
   getReview,
   updateReview,
   deleteReview,
+  addVendorReply,
+  getVendorReviews,
+  getAllCustomerReviews,
 };

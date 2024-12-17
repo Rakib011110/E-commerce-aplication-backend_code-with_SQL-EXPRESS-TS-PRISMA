@@ -23,7 +23,7 @@ const createAdmin = async (payload: {
         data: {
           name: payload.admin.name,
           profilePhoto: payload.admin.profilePhoto,
-          userId: user.id, // Link to User
+          userId: user.id,
         },
       });
 
@@ -53,7 +53,7 @@ const createVendor = async (payload: { password: string; vendor: any }) => {
         data: {
           contactNumber: payload.vendor.contactNumber,
           profilePhoto: payload.vendor.profilePhoto,
-          userId: user.id, // Link to User
+          userId: user.id,
         },
       });
 
@@ -85,7 +85,7 @@ const createCustomer = async (payload: { password: string; customer: any }) => {
           contactNumber: payload.customer.contactNumber,
           profilePhoto: payload.customer.profilePhoto,
           address: payload.customer.address,
-          userId: user.id, // Link to User
+          userId: user.id,
         },
       });
 
@@ -98,8 +98,101 @@ const createCustomer = async (payload: { password: string; customer: any }) => {
   }
 };
 
+const getAllUsers = async () => {
+  try {
+    const admins = await prisma.admin.findMany({
+      where: {
+        isDeleted: false,
+      },
+      include: { user: true },
+    });
+
+    const vendors = await prisma.vendor.findMany({
+      include: { user: true },
+      where: {
+        isDeleted: false,
+      },
+    });
+
+    const customers = await prisma.customer.findMany({
+      where: {
+        isDeleted: false,
+      },
+      include: { user: true },
+    });
+
+    return {
+      admins,
+      vendors,
+      customers,
+    };
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to fetch all users");
+  }
+};
+
+const deleteUser = async (userId: string) => {
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!existingUser) {
+      throw new Error("User not found");
+    }
+
+    if (existingUser.isDeleted) {
+      throw new Error("User is already deleted");
+    }
+
+    const deletedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { isDeleted: true },
+    });
+
+    return deletedUser;
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to delete user");
+  }
+};
+
+const changeRole = async (userId: string, role: UserRole) => {
+  try {
+    // Validate role
+    if (!Object.values(UserRole).includes(role)) {
+      throw new Error("Invalid role provided");
+    }
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!existingUser) {
+      throw new Error("User not found");
+    }
+
+    if (existingUser.isDeleted) {
+      throw new Error("Cannot change role of a deleted user");
+    }
+
+    // Update role
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { role },
+    });
+
+    return updatedUser;
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to change user role");
+  }
+};
+
 export const UserServices = {
   createAdmin,
   createVendor,
   createCustomer,
+  getAllUsers,
+  deleteUser,
+  changeRole,
 };
