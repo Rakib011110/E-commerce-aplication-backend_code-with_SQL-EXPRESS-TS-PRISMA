@@ -108,27 +108,28 @@ model ShopFollowers {
   @@unique([customerId, shopId]) // Ensure no duplicate follows
   @@map("shop_followers")
 }
-
 model Product {
   id              String     @id @default(uuid())
   name            String?
   description     String?
   price           Float
   category        String
-  isDeleted       Boolean  @default(false)
+  isDeleted       Boolean    @default(false)
   inventoryCount  Int
-  discount        Float       @default(0)
+  discount        Float      @default(0)
   shopId          String
-  shop            Shop        @relation(fields: [shopId], references: [id])
+  shop            Shop       @relation(fields: [shopId], references: [id])
   reviews         Review[]
   image           String
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @default(now())
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @default(now())
   orderItems      OrderItem[]
   cartItems       CartItem[]
-
+  isFlashSale     Boolean    @default(false) 
+  flashSaleEndAt  DateTime?             
   @@map("products")
 }
+
 
 model Order {
   id              String     @id @default(uuid())
